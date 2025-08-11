@@ -1,0 +1,186 @@
+<!DOCTYPE HTML>
+<HTML>
+<HEAD>
+<META CHARSET="utf-8">
+<TITLE>Transformer Layer Anatomy – Quick Reference</TITLE>
+<STYLE>
+    BODY { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif; line-height: 1.35; margin: 24px; }
+    H1, H2, H3 { margin: 0; }
+    H1 { font-size: 26px; }
+    H2 { font-size: 20px; margin-top: 20px; }
+    CODE { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    TABLE { border-collapse: collapse; width: 100%; margin-top: 8px; }
+    TH, TD { border: 1px solid #ccc; padding: 8px; vertical-align: top; }
+    TH { background: #222; color: #fff; }
+    TR:nth-child(even) TD { background: #f7f7f7; }
+    .SMALL { font-size: 12px; color: #333; }
+    .BLOCK { margin-top: 12px; }
+    .EQ { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background: #f4f4f4; padding: 6px 8px; border-radius: 6px; display: inline-block; }
+    .NOTE { background: #fff8dc; border: 1px solid #f0e6b6; padding: 10px; border-radius: 8px; }
+</STYLE>
+</HEAD>
+<BODY>
+
+<H1>Transformer Layer Anatomy – Quick Reference</H1>
+<BR /><BR />
+
+<DIV CLASS="SMALL">
+This page summarizes one Transformer <B>decoder block</B> (GPT-style). A single layer has two sub-layers:
+<BR /><BR />
+1) <B>MULTI-HEAD SELF-ATTENTION</B> (correlation step)<BR />
+2) <B>FEED-FORWARD NETWORK (FFN)</B> (transformation step)<BR />
+<BR />
+Each sub-layer is wrapped with a <B>RESIDUAL CONNECTION</B> and <B>LAYER NORMALIZATION (LN)</B>.
+</DIV>
+
+<BR /><BR />
+<H2>STEP-BY-STEP COMPUTATION (ONE LAYER)</H2>
+<TABLE>
+  <TR>
+    <TH>STAGE</TH>
+    <TH>COMPUTATION</TH>
+    <TH>NOTES</TH>
+  </TR>
+  <TR>
+    <TD>INPUT</TD>
+    <TD><CODE>x</CODE></TD>
+    <TD>Per-token hidden state (token + positional embeddings already applied in layer 0)</TD>
+  </TR>
+  <TR>
+    <TD>Q,K,V PROJECTIONS</TD>
+    <TD><CODE>Q = x W<SUB>Q</SUB>,&nbsp; K = x W<SUB>K</SUB>,&nbsp; V = x W<SUB>V</SUB></CODE></TD>
+    <TD>Linear maps per head (learned). Shapes use head dimension <CODE>d<SUB>k</SUB></CODE>.</TD>
+  </TR>
+  <TR>
+    <TD>ATTENTION SCORES</TD>
+    <TD><CODE>S = (Q K<SUP>T</SUP>)/&radic;d<SUB>k</SUB>,&nbsp; A = softmax(S)</CODE></TD>
+    <TD>Scaled dot-product attention. Softmax turns similarities into weights.</TD>
+  </TR>
+  <TR>
+    <TD>WEIGHTED VALUES</TD>
+    <TD><CODE>H = A V</CODE></TD>
+    <TD>Per-head context vectors.</TD>
+  </TR>
+  <TR>
+    <TD>CONCAT + OUTPUT PROJ</TD>
+    <TD><CODE>SA = concat(H<SUB>1</SUB> … H<SUB>h</SUB>) &middot; W<SUB>O</SUB></CODE></TD>
+    <TD>Concatenate heads along features, then project back to model dimension.</TD>
+  </TR>
+  <TR>
+    <TD>RESIDUAL + NORM</TD>
+    <TD><CODE>y = LN( x + SA )</CODE></TD>
+    <TD>Stabilizes training; keeps gradients flowing (residual).</TD>
+  </TR>
+  <TR>
+    <TD>FEED-FORWARD (MLP)</TD>
+    <TD><CODE>z = GeLU( y W<SUB>1</SUB> + b<SUB>1</SUB> ) W<SUB>2</SUB> + b<SUB>2</SUB></CODE></TD>
+    <TD>Position-wise 2-layer MLP with GeLU nonlinearity.</TD>
+  </TR>
+  <TR>
+    <TD>RESIDUAL + NORM</TD>
+    <TD><CODE>out = LN( y + z )</CODE></TD>
+    <TD>Layer output is passed to the next layer.</TD>
+  </TR>
+</TABLE>
+
+<BR /><BR />
+<DIV CLASS="NOTE SMALL">
+<B>NOTATION.</B> <CODE>W<SUB>Q</SUB>, W<SUB>K</SUB>, W<SUB>V</SUB>, W<SUB>O</SUB></CODE> are learned projection matrices (per head for Q/K/V; shared output projection).
+<CODE>K<SUP>T</SUP></CODE> is the transpose of <CODE>K</CODE>. <CODE>&radic;d<SUB>k</SUB></CODE> is the scaling factor for numerical stability.
+</DIV>
+
+<BR /><BR />
+<H2>GLOSSARY OF TERMS</H2>
+<TABLE>
+  <TR>
+    <TH>TERM</TH>
+    <TH>DEFINITION</TH>
+    <TH>WHY IT MATTERS</TH>
+  </TR>
+  <TR>
+    <TD>DOT PRODUCT vs COSINE SIMILARITY</TD>
+    <TD>
+      For vectors <CODE>a</CODE>, <CODE>b</CODE>, <CODE>a &middot; b = |a||b| cos(&theta;)</CODE>.
+      <B>Cosine similarity</B> is <CODE>(a &middot; b)/(|a||b|)</CODE> (i.e., dot product <I>with</I> explicit norm normalization).<BR /><BR />
+      In attention we use the <B>scaled dot product</B> <CODE>(Q K<SUP>T</SUP>)/&radic;d<SUB>k</SUB></CODE> then apply <CODE>softmax</CODE>.
+      This correlates queries and keys similarly to cosine, but without explicit L2 normalization.
+    </TD>
+    <TD>Measures alignment of token representations to decide how much each token should attend to others.</TD>
+  </TR>
+  <TR>
+    <TD>SCALED DOT-PRODUCT ATTENTION</TD>
+    <TD>
+      <CODE>S = (Q K<SUP>T</SUP>)/&radic;d<SUB>k</SUB></CODE>, <CODE>A = softmax(S)</CODE>, <CODE>H = A V</CODE>.<BR />
+      Scaling by <CODE>&radic;d<SUB>k</SUB></CODE> prevents large inner products from saturating <CODE>softmax</CODE> in high dimensions.
+    </TD>
+    <TD>Core mechanism for context mixing across a sequence.</TD>
+  </TR>
+  <TR>
+    <TD>GeLU (GAUSSIAN ERROR LINEAR UNIT)</TD>
+    <TD>
+      Exact: <SPAN CLASS="EQ">GeLU(x) = 0.5 x [ 1 + erf( x / &radic;2 ) ]</SPAN><BR />
+      Tanh approx: <SPAN CLASS="EQ">GeLU(x) &asymp; 0.5 x [ 1 + tanh( &radic;(2/&pi;) ( x + 0.044715 x<SUP>3</SUP> ) ) ]</SPAN>
+    </TD>
+    <TD>Smooth, bell-shaped activation that often trains better than ReLU/GELU-less MLPs in Transformers.</TD>
+  </TR>
+  <TR>
+    <TD>FFN (FEED-FORWARD NETWORK)</TD>
+    <TD>
+      Position-wise 2-layer MLP: <CODE>y &rarr; GeLU( y W<SUB>1</SUB> + b<SUB>1</SUB> ) W<SUB>2</SUB> + b<SUB>2</SUB></CODE>.<BR />
+      Applies independently to each token (no cross-token mixing here).
+    </TD>
+    <TD>Imparts non-linear feature transformation and expands model capacity.</TD>
+  </TR>
+  <TR>
+    <TD>MLP (MULTI-LAYER PERCEPTRON)</TD>
+    <TD>Generic term for a stack of fully-connected layers with nonlinearities (here: 2 layers with GeLU in between).</TD>
+    <TD>Implements the FFN sub-layer.</TD>
+  </TR>
+  <TR>
+    <TD>RESIDUAL CONNECTION</TD>
+    <TD>Skip-connection: add input back to sub-layer output (<CODE>x + f(x)</CODE>), then normalize.</TD>
+    <TD>Stabilizes gradients; lets layers learn corrections instead of full rewrites.</TD>
+  </TR>
+  <TR>
+    <TD>LN (LAYER NORMALIZATION)</TD>
+    <TD>Normalizes features for each token: zero-mean, unit-variance (then learned scale/shift).</TD>
+    <TD>Improves training stability and convergence.</TD>
+  </TR>
+  <TR>
+    <TD>MULTI-HEAD CONCAT + PROJECTION</TD>
+    <TD>
+      Each head outputs <CODE>H<SUB>i</SUB></CODE> with shape <CODE>(T &times; d<SUB>k</SUB>)</CODE>.
+      Concatenate along features to get <CODE>(T &times; h&middot;d<SUB>k</SUB>)</CODE>, then apply <CODE>W<SUB>O</SUB></CODE>
+      to map back to model dim <CODE>d<SUB>model</SUB></CODE>.
+    </TD>
+    <TD>Lets the model attend to multiple relation types in parallel, then recombine them.</TD>
+  </TR>
+  <TR>
+    <TD>EMBEDDINGS</TD>
+    <TD>Token and positional lookup tables that convert discrete ids into dense vectors.</TD>
+    <TD>Provide the initial <CODE>x</CODE> into layer 1.</TD>
+  </TR>
+</TABLE>
+
+<BR /><BR />
+<H2>MINI CHEAT SHEET (PER TOKEN)</H2>
+<DIV CLASS="BLOCK">
+<CODE>
+x<br />
+Q = x W<SUB>Q</SUB>,&nbsp; K = x W<SUB>K</SUB>,&nbsp; V = x W<SUB>V</SUB><br />
+A = softmax( (Q K<SUP>T</SUP>) / &radic;d<SUB>k</SUB> )<br />
+SA = concat(H<SUB>1</SUB> … H<SUB>h</SUB>) W<SUB>O</SUB><br />
+y = LN( x + SA )<br />
+z = GeLU( y W<SUB>1</SUB> + b<SUB>1</SUB> ) W<SUB>2</SUB> + b<SUB>2</SUB><br />
+out = LN( y + z )
+</CODE>
+</DIV>
+
+<BR /><BR /><HR />
+<DIV CLASS="SMALL">
+Page originally drafted by ChatGPT on 2025-08-11.<BR />
+Edited and formatted for quick-reference use.
+</DIV>
+
+</BODY>
+</HTML>
