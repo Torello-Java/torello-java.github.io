@@ -3,76 +3,73 @@
 <HEAD>
 <META CHARSET="utf-8">
 <META NAME="viewport" CONTENT="width=device-width,initial-scale=1">
+<META NAME="description" CONTENT="Java-HTML .JAR — Ralph Torello’s toolchain for upgraded JavaDoc, HTML/JSON/CSS parsing, and a Chrome DevTools Protocol (CDP) wrapper for scripted browser automation.">
+<META PROPERTY="og:title" CONTENT="TORELLO.JAVA — JAVA-HTML .JAR LIBRARY">
+<META PROPERTY="og:description" CONTENT="Upgraded JavaDoc, HTML/JSON/CSS parsers, and a CDP/WebSocket wrapper — built for static sites.">
+<META PROPERTY="og:type" CONTENT="website">
+<META PROPERTY="og:url" CONTENT="https://github.torello.directory/">
+<META NAME="twitter:card" CONTENT="summary">
 <TITLE>TORELLO.JAVA — JAVA-HTML .JAR LIBRARY</TITLE>
 <STYLE>
-/* Minimal, readable defaults */
 BODY { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Arial, sans-serif;
-       line-height: 1.35; margin: 24px; }
+       line-height: 1.45; margin: 24px; max-width: 900px; }
 A { text-decoration: none; }
 A:HOVER { text-decoration: underline; }
 UL.JDUL { list-style: disc; padding-left: 1.25rem; }
 CODE { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+.HERO { font-weight: 700; font-size: 28px; letter-spacing: 0.3px; }
 .SMALL { font-size: 12px; color: #333; }
+.BOX { border: 1px solid #ddd; border-radius: 10px; padding: 14px 16px; background: #fafafa; }
 </STYLE>
 </HEAD>
 <BODY>
 
-<H1>JAVA-HTML .JAR — OVERVIEW</H1><BR /><BR />
+<DIV CLASS="HERO">TORELLO.JAVA — JAVA-HTML .JAR LIBRARY</DIV><BR /><BR />
 
-The <B>JAVA-HTML</B> library is Ralph Torello’s tooling for building, upgrading, and publishing
-high-quality static documentation sites. It powers a custom JavaDoc pipeline, rich HTML/JSON/CSS
-utilities, and a Chrome DevTools Protocol wrapper for automated browser work — all designed to
-run reliably in large builds and stay friendly to static hosting.<BR /><BR />
+The <B>JAVA-HTML</B> library is a build-first toolchain for producing clean, static, cache-friendly
+documentation sites. It upgrades plain Oracle JavaDoc, provides tight HTML/JSON/CSS utilities,
+and ships a light Chrome DevTools Protocol wrapper for scripted browser work — all designed to
+stay deterministic across very large builds.<BR /><BR />
 
 <H2>WHAT IT IS</H2>
 <UL CLASS=JDUL>
-  <LI>A build-first approach to <B>JavaDoc</B> that inserts upgrades and external HTML without
-      cluttering source files.</LI>
-  <LI>Fast, deterministic <B>HTML/JSON/CSS</B> utilities for parsing, transforming, and formatting
-      documentation assets.</LI>
-  <LI>A lightweight <B>CDP/WebSocket</B> layer for scripted browser tasks (headless or headful).</LI>
-</UL><BR />
+  <LI><B>JDU — JAVADOC UPGRADER</B> — Structured post-processing for JavaDoc output: external HTML
+      embedding, link corrections, layout polish, and consistent site-wide formatting without
+      cluttering source files.<BR /><BR /></LI>
 
-<H2>KEY COMPONENTS</H2>
-<UL CLASS=JDUL>
-  <LI><B>JDU — JAVADOC UPGRADER</B>:
-      Applies structured upgrades to plain Oracle JavaDoc output. Supports external HTML injection,
-      link cleanup, layout tweaks, and consistent site-wide formatting while keeping sources clean.</LI>
+  <LI><B>Torello.HTML</B> — An HTML parser + toolkit that turns documents into editable node trees.
+      Paired with <B>Torello.HTML.NodeSearch</B> for safe, targeted transforms (lists, tables,
+      anchors, attribution, line-length hygiene).<BR /><BR /></LI>
 
-  <LI><B>TORELLO.HTML</B>:
-      An HTML parser and toolkit that produces editable node structures for precise transforms
-      (lists, tables, anchors, attribution footers, line-length hygiene). Includes <B>NodeSearch</B>
-      helpers to find and rewrite elements safely.</LI>
+  <LI><B>Torello.JSON</B> — Lean readers/writers (e.g., <CODE>ReadJSON</CODE>, boxed/primitive helpers)
+      for configuration and content stitching across the toolchain.<BR /><BR /></LI>
 
-  <LI><B>TORELLO.JSON</B>:
-      Lean JSON readers/writers (e.g., <CODE>ReadJSON</CODE>, boxed/primitive helpers) used across
-      the toolchain for configs and content stitching.</LI>
+  <LI><B>CSS TOKENIZER / PARSERS</B> — Tokenizer derived from CSS Syntax Level 3 pseudo-code, with
+      higher-level elementization layered on top for analysis and normalization of generated styles.<BR /><BR /></LI>
 
-  <LI><B>CSS TOKENIZER / PARSERS</B>:
-      Tokenizer derived from CSS Syntax Level 3 pseudo-code; used to analyze and normalize styles
-      in generated docs. (Higher-level elementization sits on top of the tokens.)</LI>
-
-  <LI><B>TORELLO.BROWSER (CDP WRAPPER)</B>:
-      A Java API over Chrome DevTools Protocol via WebSockets. Core classes like
-      <CODE>BrowserConn</CODE>, <CODE>PageConn</CODE>, and <CODE>WebSocketSender</CODE> enable scripted
-      navigation, JS evaluation, event/error handling, and scraping pipelines.</LI>
+  <LI><B>Torello.Browser — CDP/WEBSOCKET WRAPPER</B> — Java bindings over Chrome DevTools Protocol
+      via WebSockets (e.g., <CODE>BrowserConn</CODE>, <CODE>PageConn</CODE>, <CODE>WebSocketSender</CODE>).
+      Enables scripted navigation, JS evaluation, event/error handling, and scraping pipelines
+      (headless or headful).</LI>
 </UL><BR />
 
 <H2>WHY IT EXISTS</H2>
-Produce static, cache-friendly, link-stable documentation you can publish anywhere (Cloudflare R2,
-GCS, GitHub Pages). The library favors clarity, repeatable builds, and zero surprise diffs over
-ad-hoc HTML hand edits.<BR /><BR />
+Static hosting is reliable, cheap, and fast. This library favors clarity and repeatable builds
+over ad-hoc HTML edits, so you can publish to Cloudflare R2, GCS, or GitHub Pages with minimal
+moving parts — and get identical output every time.<BR /><BR />
 
-<H2>LIVE MATERIAL</H2>
-Current public page (one-pager cheat sheet):<BR />
+<DIV CLASS=BOX>
+<B>LIVE MATERIAL</B><BR />
+Current public one-pager (Transformer layer quick reference):<BR />
 <A HREF="https://torello-java.github.io/ChatGPT-Notes/AboutAI/index.html">
   https://torello-java.github.io/ChatGPT-Notes/AboutAI/index.html
-</A><BR /><BR />
+</A>
+</DIV>
 
 <BR /><HR />
 <P CLASS="CGPT-ATTRIBUTION">
-    Page drafted by ChatGPT on 2025-08-11.<BR />
-    Posted as-is at Ralph’s request. Content authored by ChatGPT, not Ralph Torello.
+    Page originally drafted by ChatGPT on 2025-08-11.<BR />
+    Edited and formatted by ChatGPT at Ralph’s request. Content authored by ChatGPT, not Ralph Torello.
 </P>
 
 </BODY>
